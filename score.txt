@@ -1,0 +1,138 @@
+Ｅｎｇｌｉｓｈ
+ＷｉｋｉＳｐｌｉｔ数据集
+房山
+文本复述任务  rephrase
+I0304 09:39:30.972745 140343189047040 saver.py:1284] Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/export/1583285962/variables/variables
+Exact score:     29.450
+SARI score:      63.357
+ KEEP score:     84.602
+ ADDITION score: 39.264
+ DELETION score: 66.205
+cost time 0.474186 h   平均延迟=474*0.1389=65.9ms
+
+I0305 09:07:18.522751 140027137722112 saver.py:1284] Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-13600
+I0305 09:07:24.312202 140087803660032 saver.py:1284] Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/export/1583370435/variables/variables
+Exact score:     29.223
+SARI score:      64.789
+ KEEP score:     85.501
+ ADDITION score: 38.750
+ DELETION score: 70.116
+cost time 0.365277 h　　　房山的机器比成都的快一些
+
+# 最好
+I0305 09:07:18.522751 140027137722112 saver.py:1284] Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-13000
+Exact score:     29.467
+SARI score:      64.682
+ KEEP score:     85.444
+ ADDITION score: 38.995
+ DELETION score: 69.608
+cost time 0.363716 h
+
+RoBert_tiny_clue
+成都
+I0305 13:12:13.877925 140516764653312 saver.py:1284] Restoring parameters from /home/cloudminds/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-10000
+I0305 13:12:17.264370 139823397283584 saver.py:1284] Restoring parameters from /home/cloudminds/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/export/1583385131/variables/variables
+Exact score:     29.080
+SARI score:      64.431
+ KEEP score:     85.326
+ ADDITION score: 38.437
+ DELETION score: 69.529
+cost time 0.215178 h     平均延迟=215.2*0.1389=29.9ms
+
+房山　output_arbitrary_targets_for_infeasible_examples=true  效果不好
+Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-3000
+Exact score:     21.833
+SARI score:      44.511
+ KEEP score:     43.833
+ ADDITION score: 28.926
+ DELETION score: 60.774
+cost time 0.160548 h
+Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-3643
+Exact score:     22.203
+SARI score:      45.041
+ KEEP score:     44.660
+ ADDITION score: 29.342
+ DELETION score: 61.119
+cost time 0.164692 h
+Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-12145
+Exact score:     23.426
+SARI score:      46.198
+ KEEP score:     46.155
+ ADDITION score: 30.511
+ DELETION score: 61.928
+cost time 0.159897 h      平均延迟=215.2*0.1389=22.1ms
+
+房山　output_arbitrary_targets_for_infeasible_examples=FALSE  新的位置编码  提高0.2%
+Saving checkpoints for 10000 into /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt.
+Exact score:     29.290
+SARI score:      64.231
+ KEEP score:     85.007
+ ADDITION score: 38.111
+ DELETION score: 69.576
+cost time 0.352712 h
+
+max_timescale=1.0e2):  # TODO previous max_timescale=1.0e4
+Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-12145
+Exact score:     29.313
+SARI score:      64.035
+ KEEP score:     84.949
+ ADDITION score: 38.143
+ DELETION score: 69.013
+cost time 0.15983 h   房山测的
+Restoring parameters from /home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name/model.ckpt-11600
+Exact score:     29.110
+SARI score:      64.070
+ KEEP score:     84.862
+ ADDITION score: 38.037
+ DELETION score: 69.311
+cost time 0.159824 h
+看来已经收敛了,再训练也不会明显提高
+
+
+
+
+
+
+
+成都　batch=1,4.39h
+batch=32
+
+
+
+
+
+
+成都小ｂａｔｃｈ跑的模型　
+INFO:tensorflow:SavedModel written to: /home/cloudminds/Mywork/corpus/English/wiki-split-master/output/models/wikisplit_experiment_name/export/temp-b'1583111094'/saved_model.pb
+INFO:tensorflow:Restoring parameters from /home/cloudminds/Mywork/corpus/English/wiki-split-master/output/models/wikisplit_experiment_name/model.ckpt-23050
+
+Exact score:     15.060
+SARI score:      61.542
+ KEEP score:     93.017
+ ADDITION score: 32.125
+ DELETION score: 59.485
+cost time 1.66192 h
+基本与论文中的Exact score=15.2；SARI score=61.7一致；
+
+房山大ｂａｔｃｈ
+Exact score:     15.260
+SARI score:      61.112
+ KEEP score:     92.985
+ ADDITION score: 31.733
+ DELETION score: 58.617
+cost time 0.634286 h
+I0303 08:49:44.932914 140208028399360 saver.py:1284] Restoring parameters from /home/wzk/Mywork/corpus/English/wiki-split-master/output/models/wikisplit_experiment_name/export/1583196572/variables/variables
+I0303 08:49:34.916036 139740890666752 saver.py:1284] Restoring parameters from /home/wzk/Mywork/corpus/English/wiki-split-master/output/models/wikisplit_experiment_name/model.ckpt-1400
+
+
+
+
+
+
+Ｃｈｉｎｅｓｅ
+文本复述的数据集：
+1.PAWS-X  https://github.com/google-research-datasets/paws/tree/master/pawsx　下载PAWS-X for six languages
+tran:49401对　但其中有一些是空行　　数据集是翻译加模型得到的，质量并不是特别高，且文本偏长　　成都文件路径：/home/cloudminds/Mywork/corpus/文本复述/x_final
+2.文本匹配的语料　用ＬＣＳ做一下限制　例如ＬＣＱＭＣ中的正例就不错,共74172对大于0.4　　120000对大于0.３
+3.宝安机场的语料　有一些语料就是多了一个问好，这种目前还没过滤掉　用ＬＣＳ做一下限制  have save 2153 to /home/cloudminds/Mywork/corpus/文本复述/baoan_airport.txt
+4.宝安机场的语料　自己下载　have save 34555 to /home/cloudminds/Mywork/corpus/文本复述/baoan_airport_from_xlsx.txt
