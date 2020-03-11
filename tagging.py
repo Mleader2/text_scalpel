@@ -124,13 +124,12 @@ class EditingTask(object):
       The realized text.
     """
     output_tokens = []
+    # add_flag = True # 可以插入
     for index, (token, tag) in enumerate(zip(tokens, tags)):
       loc = "0"
       if self.location is not None:
         loc = self.location[index]
-      # print(curLine(), index, loc)
-      # print(curLine(), "token, tag:", token, tag, "output_tokens:", output_tokens)
-      if tag.added_phrase:  # TODO
+      if tag.added_phrase and (loc == "0" or index==0 or (index>0 and self.location[index-1]=="0")):  # TODO
         output_tokens.append(tag.added_phrase)
       if tag.tag_type in (TagType.KEEP, TagType.SWAP) or loc == "1":  # TODO 根据需要修改代码,location为"1"的位置不能被删除, 但目前是可以插入的
         output_tokens.append(token)
@@ -184,14 +183,15 @@ class EditingTask(object):
       realized_source = self._realize_sequence(
           self.source_tokens[first_token:last_token],
           tags[first_token:last_token])
+
       if outputs:
-        if outputs[0][-1:] in '.!?':
-          realized_source = self._first_char_to_upper(realized_source)
+        if len(outputs[0][-1:])>0 and outputs[0][-1:] in '.!?':
+          realized_source = self._first_char_to_upper(realized_source)  # 变大写
         else:
           # Note that ideally we should also test here whether the first word is
           # a proper noun or an abbreviation that should always be capitalized.
-          realized_source = self._first_char_to_lower(realized_source)
-      # print(curLine(), "source_idx=",source_idx, ",realized_source:", realized_source)
+          realized_source = self._first_char_to_lower(realized_source)  # 变小写
+        # print(curLine(), len(outputs[0][-1:]), "outputs[0][-1:]:", outputs[0][-1:], "source_idx=",source_idx, ",realized_source:", realized_source)
       outputs.append(realized_source)
     prediction = self.sep.join(outputs)
     return prediction

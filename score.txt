@@ -88,7 +88,13 @@ SARI score:      64.070
 cost time 0.159824 h
 看来已经收敛了,再训练也不会明显提高
 
-
+完善大小写的处理规则
+Exact score:     29.283
+SARI score:      64.002
+ KEEP score:     84.942
+ ADDITION score: 38.128
+ DELETION score: 68.935
+cost time 0.41796 h
 
 
 

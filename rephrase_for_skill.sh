@@ -40,35 +40,11 @@ export output_arbitrary_targets_for_infeasible_examples=false
 export WIKISPLIT_DIR="/home/${HOST_NAME}/Mywork/corpus/rephrase_corpus"
 export OUTPUT_DIR="${WIKISPLIT_DIR}/output"
 
-#python phrase_vocabulary_optimization.py \
-#  --input_file=${WIKISPLIT_DIR}/train.txt \
-#  --input_format=wikisplit \
-#  --vocabulary_size=500 \
-#  --max_input_examples=1000000 \
-#  --enable_swap_tag=${enable_swap_tag} \
-#  --output_file=${OUTPUT_DIR}/label_map.txt
 
 
 export max_seq_length=40 # TODO
 export BERT_BASE_DIR="/home/${HOST_NAME}/Mywork/model/RoBERTa-tiny-clue" # chinese_L-12_H-768_A-12"
 
-#python preprocess_main.py \
-#  --input_file=${WIKISPLIT_DIR}/tune.txt \
-#  --input_format=wikisplit \
-#  --output_tfrecord=${OUTPUT_DIR}/tune.tf_record \
-#  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-#  --vocab_file=${BERT_BASE_DIR}/vocab.txt \
-#  --max_seq_length=${max_seq_length} \
-#  --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples}  # TODO true
-#
-#python preprocess_main.py \
-#    --input_file=${WIKISPLIT_DIR}/train.txt \
-#    --input_format=wikisplit \
-#    --output_tfrecord=${OUTPUT_DIR}/train.tf_record \
-#    --label_map_file=${OUTPUT_DIR}/label_map.txt \
-#    --vocab_file=${BERT_BASE_DIR}/vocab.txt \
-#    --max_seq_length=${max_seq_length} \
-#    --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples} # TODO false
 
 
 
@@ -76,38 +52,6 @@ export BERT_BASE_DIR="/home/${HOST_NAME}/Mywork/model/RoBERTa-tiny-clue" # chine
 export CONFIG_FILE=configs/lasertagger_config.json
 export EXPERIMENT=wikisplit_experiment_name
 
-
-
-#python run_lasertagger.py \
-#  --training_file=${OUTPUT_DIR}/train.tf_record \
-#  --eval_file=${OUTPUT_DIR}/tune.tf_record \
-#  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-#  --model_config_file=${CONFIG_FILE} \
-#  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
-#  --init_checkpoint=${BERT_BASE_DIR}/bert_model.ckpt \
-#  --do_train=true \
-#  --do_eval=true \
-#  --train_batch_size=${TRAIN_BATCH_SIZE} \
-#  --save_checkpoints_steps=200 \
-#  --max_seq_length=${max_seq_length} \
-#  --num_train_examples=${NUM_TRAIN_EXAMPLES} \
-#  --num_eval_examples=${NUM_EVAL_EXAMPLES}
-
-#CUDA_VISIBLE_DEVICES="" nohup python run_lasertagger.py \
-#  --training_file=${OUTPUT_DIR}/train.tf_record \
-#  --eval_file=${OUTPUT_DIR}/tune.tf_record \
-#  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-#  --model_config_file=${CONFIG_FILE} \
-#  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
-#  --init_checkpoint=${BERT_BASE_DIR}/bert_model.ckpt \
-#  --do_train=true \
-#  --do_eval=true \
-#  --train_batch_size=${TRAIN_BATCH_SIZE} \
-#  --save_checkpoints_steps=${SAVE_CHECKPOINT_STEPS} \
-#  --num_train_epochs=${NUM_EPOCHS} \
-#  --max_seq_length=${max_seq_length} \
-#  --num_train_examples=${NUM_TRAIN_EXAMPLES} \
-#  --num_eval_examples=${NUM_EVAL_EXAMPLES} > log.txt 2>&1 &
 
 
 ### 4. Prediction
@@ -126,7 +70,7 @@ TIMESTAMP=$(ls "${OUTPUT_DIR}/models/${EXPERIMENT}/export/" | \
 SAVED_MODEL_DIR=${OUTPUT_DIR}/models/${EXPERIMENT}/export/${TIMESTAMP}
 PREDICTION_FILE=${OUTPUT_DIR}/models/${EXPERIMENT}/pred.tsv
 export domain_name=times
-python predict_for_skill.py \
+python skill_rephrase/predict_for_skill.py \
   --input_file=/home/${HOST_NAME}/Mywork/corpus/ner_corpus/times_corpus/slot_times.txt \
   --input_format=wikisplit \
   --output_file=/home/${HOST_NAME}/Mywork/corpus/ner_corpus/times_corpus/slot_times_expandexpand.json \

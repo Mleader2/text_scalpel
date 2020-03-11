@@ -1,9 +1,4 @@
-# 扩充技能的语料
-# rephrase_for_skill.sh: 在rephrase.sh基础上改的
-# predict_for_skill.py: 在 predict_main.py基础上改的
-# score_for_skill.txt 结果对比
-
-
+# 扩充文本匹配的语料  文本复述任务
 #　成都
 # pyenv activate python373tf115
 # pip install -i https://pypi.douban.com/simple/ bert-tensorflow==1.0.1
@@ -52,13 +47,64 @@ export OUTPUT_DIR="${WIKISPLIT_DIR}/output"
 export max_seq_length=40 # TODO
 export BERT_BASE_DIR="/home/${HOST_NAME}/Mywork/model/RoBERTa-tiny-clue" # chinese_L-12_H-768_A-12"
 
+#python preprocess_main.py \
+#  --input_file=${WIKISPLIT_DIR}/tune.txt \
+#  --input_format=wikisplit \
+#  --output_tfrecord=${OUTPUT_DIR}/tune.tf_record \
+#  --label_map_file=${OUTPUT_DIR}/label_map.txt \
+#  --vocab_file=${BERT_BASE_DIR}/vocab.txt \
+#  --max_seq_length=${max_seq_length} \
+#  --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples}  # TODO true
+#
+#python preprocess_main.py \
+#    --input_file=${WIKISPLIT_DIR}/train.txt \
+#    --input_format=wikisplit \
+#    --output_tfrecord=${OUTPUT_DIR}/train.tf_record \
+#    --label_map_file=${OUTPUT_DIR}/label_map.txt \
+#    --vocab_file=${BERT_BASE_DIR}/vocab.txt \
+#    --max_seq_length=${max_seq_length} \
+#    --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples} # TODO false
 
 
 
 # Check these numbers from the "*.num_examples" files created in step 2.
+export NUM_TRAIN_EXAMPLES=310922
+export NUM_EVAL_EXAMPLES=5000
 export CONFIG_FILE=configs/lasertagger_config.json
 export EXPERIMENT=wikisplit_experiment_name
 
+
+
+#python run_lasertagger.py \
+#  --training_file=${OUTPUT_DIR}/train.tf_record \
+#  --eval_file=${OUTPUT_DIR}/tune.tf_record \
+#  --label_map_file=${OUTPUT_DIR}/label_map.txt \
+#  --model_config_file=${CONFIG_FILE} \
+#  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
+#  --init_checkpoint=${BERT_BASE_DIR}/bert_model.ckpt \
+#  --do_train=true \
+#  --do_eval=true \
+#  --train_batch_size=${TRAIN_BATCH_SIZE} \
+#  --save_checkpoints_steps=200 \
+#  --max_seq_length=${max_seq_length} \
+#  --num_train_examples=${NUM_TRAIN_EXAMPLES} \
+#  --num_eval_examples=${NUM_EVAL_EXAMPLES}
+
+#CUDA_VISIBLE_DEVICES="" nohup python run_lasertagger.py \
+#  --training_file=${OUTPUT_DIR}/train.tf_record \
+#  --eval_file=${OUTPUT_DIR}/tune.tf_record \
+#  --label_map_file=${OUTPUT_DIR}/label_map.txt \
+#  --model_config_file=${CONFIG_FILE} \
+#  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
+#  --init_checkpoint=${BERT_BASE_DIR}/bert_model.ckpt \
+#  --do_train=true \
+#  --do_eval=true \
+#  --train_batch_size=${TRAIN_BATCH_SIZE} \
+#  --save_checkpoints_steps=${SAVE_CHECKPOINT_STEPS} \
+#  --num_train_epochs=${NUM_EPOCHS} \
+#  --max_seq_length=${max_seq_length} \
+#  --num_train_examples=${NUM_TRAIN_EXAMPLES} \
+#  --num_eval_examples=${NUM_EVAL_EXAMPLES} > log.txt 2>&1 &
 
 
 ### 4. Prediction
@@ -70,24 +116,24 @@ export EXPERIMENT=wikisplit_experiment_name
 #  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
 #  --do_export=true \
 #  --export_path=${OUTPUT_DIR}/models/${EXPERIMENT}/export
-
-## Get the most recently exported model directory.
+#
+### Get the most recently exported model directory.
 TIMESTAMP=$(ls "${OUTPUT_DIR}/models/${EXPERIMENT}/export/" | \
             grep -v "temp-" | sort -r | head -1)
 SAVED_MODEL_DIR=${OUTPUT_DIR}/models/${EXPERIMENT}/export/${TIMESTAMP}
 PREDICTION_FILE=${OUTPUT_DIR}/models/${EXPERIMENT}/pred.tsv
 
-python domain_rephrase/predict_for_domain.py \
-  --input_file=/home/${HOST_NAME}/Mywork/corpus/ner_corpus/domain_corpus/train3.csv \
+python qa_rephrase/predict_for_qa.py \
+  --input_file=${WIKISPLIT_DIR}/test.txt \
   --input_format=wikisplit \
-  --output_file=/home/${HOST_NAME}/Mywork/corpus/ner_corpus/domain_corpus/train3_expand.csv \
+  --output_file=${PREDICTION_FILE} \
   --label_map_file=${OUTPUT_DIR}/label_map.txt \
   --vocab_file=${BERT_BASE_DIR}/vocab.txt \
   --max_seq_length=${max_seq_length} \
   --saved_model=${SAVED_MODEL_DIR}
 
 #### 5. Evaluation
-#python score_main.py --prediction_file=${PREDICTION_FILE}
+python score_main.py --prediction_file=${PREDICTION_FILE}
 
 
 end_tm=`date +%s%N`;

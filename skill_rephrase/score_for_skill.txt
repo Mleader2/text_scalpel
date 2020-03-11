@@ -1,0 +1,55 @@
+# 扩展times的语料前
+[trainer.py:182]  f1_score_slot= 99.93185946253503 f1_score_intent= 99.05839393642326 f1_score= 99.78628187484973
+[trainer.py:199]  The best dev: epoch=3, score=99.99
+[trainer.py:200]  The corresponding test: epoch=3, score=100.00
+[trainer.py:201]  Finished archiving the models, start final testing.
+[trainer.py:203]  model_file: /home/cloudminds/Mywork/corpus/ner_corpus/times_model/lstm_crf.m
+[trainer.py:253]  cost_time=0.031036s, ave_time=0.341051ms
+[trainer.py:263]  type:number P:100.00%, R:100.00%, F1:100.000%
+[trainer.py:263]  type:year P:100.00%, R:100.00%, F1:100.000%
+[trainer.py:263]  type:date P:100.00%, R:100.00%, F1:100.000%
+[trainer.py:289]  test_slot P:100.00, R:100.00, F1:100.000
+
+[trainer.py:302]  f1_weighted_intent=91.784692, f1_macro_intent=93.101826
+[trainer.py:303]  f1_score_intent= 92.0481191049753 classification_report_intent:
+               precision    recall  f1-score   support
+
+           0      1.000     1.000     1.000         4
+           1      1.000     0.571     0.727        14
+           2      1.000     1.000     1.000        18
+           3      0.962     0.962     0.962        26
+           4      0.773     1.000     0.872        17
+           5      1.000     1.000     1.000         1
+           6      0.917     1.000     0.957        11
+
+    accuracy                          0.923        91
+   macro avg      0.950     0.933     0.931        91
+weighted avg      0.936     0.923     0.918        91
+
+# 扩展times的语料后   下降一点，是因为没有针对这些场景么
+[trainer.py:182]  f1_score_slot= 99.87074867480472 f1_score_intent= 98.7267364507435 f1_score= 99.68007997079451
+[trainer.py:199]  The best dev: epoch=8, score=99.92
+[trainer.py:200]  The corresponding test: epoch=8, score=100.00
+[trainer.py:201]  Finished archiving the models, start final testing.
+[trainer.py:203]  model_file: /home/cloudminds/Mywork/corpus/ner_corpus/times_model/lstm_crf.m
+[trainer.py:253]  cost_time=0.029509s, ave_time=0.324270ms
+[trainer.py:263]  type:number P:100.00%, R:100.00%, F1:100.000%
+[trainer.py:263]  type:year P:100.00%, R:100.00%, F1:100.000%
+[trainer.py:263]  type:date P:100.00%, R:100.00%, F1:100.000%
+[trainer.py:289]  test_slot P:100.00, R:100.00, F1:100.000
+
+[trainer.py:302]  f1_weighted_intent=89.032198, f1_macro_intent=90.676121
+[trainer.py:303]  f1_score_intent= 89.36098260170371 classification_report_intent:
+               precision    recall  f1-score   support
+
+           0      1.000     1.000     1.000         4
+           1      1.000     0.429     0.600        14
+           2      1.000     1.000     1.000        18
+           3      0.962     0.962     0.962        26
+           4      0.708     1.000     0.829        17
+           5      1.000     1.000     1.000         1
+           6      0.917     1.000     0.957        11
+
+    accuracy                          0.901        91
+   macro avg      0.941     0.913     0.907        91
+weighted avg      0.924     0.901     0.890        91
