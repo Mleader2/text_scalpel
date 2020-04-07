@@ -1,8 +1,13 @@
 # LaserTagger
-# project:lasertagger_Chinese 是针对中文语料  lasertagger_config.json中vocab_size=21128
-# 另一个project(lasertagger-master)是针对英文语料 lasertagger_config.json中vocab_size=28996
-# 主要是宝安机场842　　SELECT request,domain,source,day,agentid from hitlog where agentname like '%宝安机场%' and year=2020 and month>1 and length(request)>1
+
+
 git clone https://github.com/Mleader2/text_scalpel.git
+git pull
+git push
+https://github.com/Mleader2/text_scalpel
+
+
+
 
 LaserTagger is a text-editing model which predicts a sequence of token-level
 edit operations to transform a source text into a target text. The model

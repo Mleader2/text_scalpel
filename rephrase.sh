@@ -18,7 +18,7 @@ export CUDA_VISIBLE_DEVICES=""
 
 start_tm=`date +%s%N`;
 
-export HOST_NAME="cloudminds" #　 　"wzk" #
+export HOST_NAME="wzk" #"cloudminds" #　 　
 ### Optional parameters ###
 
 # If you train multiple models on the same data, change this label.

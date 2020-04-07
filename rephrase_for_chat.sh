@@ -1,3 +1,4 @@
+# 为闲聊的文本匹配语料做数据增强
 # 扩充文本匹配的语料  文本复述任务
 #　成都
 # pyenv activate python373tf115
@@ -23,7 +24,7 @@ export CUDA_VISIBLE_DEVICES=""
 
 start_tm=`date +%s%N`;
 
-export HOST_NAME="wzk" #"cloudminds" #　 　
+export HOST_NAME="cloudminds" #　  "wzk" #　
 ### Optional parameters ###
 
 # If you train multiple models on the same data, change this label.
@@ -128,10 +129,10 @@ python run_lasertagger.py \
 TIMESTAMP=$(ls "${OUTPUT_DIR}/models/${EXPERIMENT}/export/" | \
             grep -v "temp-" | sort -r | head -1)
 SAVED_MODEL_DIR=${OUTPUT_DIR}/models/${EXPERIMENT}/export/${TIMESTAMP}
-PREDICTION_FILE=${OUTPUT_DIR}/models/${EXPERIMENT}/pred_qa.txt
+PREDICTION_FILE=${OUTPUT_DIR}/models/${EXPERIMENT}/expand_simq_v4.0.json
 
-python qa_rephrase/predict_for_qa.py \
-  --input_file=/home/${HOST_NAME}/Mywork/corpus/Chinese_QA/LCQMC/train.txt \
+python chat_rephrase/predict_for_chat.py \
+  --input_file=/home/${HOST_NAME}/Mywork/corpus/闲聊/simq_v4.0.json \
   --input_format=wikisplit \
   --output_file=${PREDICTION_FILE} \
   --label_map_file=${OUTPUT_DIR}/label_map.txt \

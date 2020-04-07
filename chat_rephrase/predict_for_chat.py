@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
+import json
 from absl import app
 from absl import flags
 from absl import logging
@@ -90,30 +90,19 @@ def main(argv):
         label_map)
     print(colored("%s input file:%s" % (curLine(), FLAGS.input_file), "red"))
     sourcesA_list = []
-    sourcesB_list = []
-    target_list = []
-    with tf.io.gfile.GFile(FLAGS.input_file) as f:
+    # sourcesB_list = []
+    # target_list = []
+    with open(FLAGS.input_file) as f:
         for line in f:
-            sourceA, sourceB, label = line.rstrip('\n').split('\t')
-            sourcesA_list.append([sourceA.strip(".")])
-            sourcesB_list.append([sourceB.strip(".")])
-            target_list.append(label)
-
-
-
-    number = len(sourcesA_list)  # 总样本数
-    predict_batch_size = min(32, number)
-    batch_num = math.ceil(float(number) / predict_batch_size)
-
+            json_map = json.loads(line.rstrip('\n'))
+            sourcesA_list.append(json_map["questions"])
+    print(curLine(), len(sourcesA_list), "sourcesA_list:", sourcesA_list[-1])
     start_time = time.time()
     num_predicted = 0
-    prediction_list = []
     with tf.gfile.Open(FLAGS.output_file, 'w') as writer:
-        for batch_id in range(batch_num):
-            sources_batch = sourcesA_list[batch_id * predict_batch_size: (batch_id + 1) * predict_batch_size]
-            batch_b = sourcesB_list[batch_id * predict_batch_size: (batch_id + 1) * predict_batch_size]
+        for batch_id,sources_batch in enumerate(sourcesA_list):
+            # sources_batch = sourcesA_list[batch_id * predict_batch_size: (batch_id + 1) * predict_batch_size]
             location_batch = []
-            sources_batch.extend(batch_b)
             for source in sources_batch:
                 location = list()
                 for char in source[0]:
@@ -123,47 +112,32 @@ def main(argv):
                         location.append("0")
                 location_batch.append("".join(location))
             prediction_batch = predictor.predict_batch(sources_batch=sources_batch, location_batch=location_batch)
-            current_batch_size = int(len(sources_batch)/2)
-            assert len(prediction_batch) == current_batch_size*2
+            # current_batch_size = int(len(sources_batch)/2)
+            # assert len(prediction_batch) == current_batch_size*2
+            expand_list = []
+            for prediction in prediction_batch: # TODO
+                if prediction in sources_batch:
+                    # print(curLine(), prediction, ",重复", sources_batch.index(prediction))
+                    continue
+                expand_list.append(prediction)
+                # print(curLine(), type(prediction), "prediction:", prediction, len(expand_list))
 
-            for id in range(0, current_batch_size):
-                target = target_list[num_predicted+id]
-                prediction_A = prediction_batch[id]
-                prediction_B = prediction_batch[current_batch_size+id]
-                sourceA = "".join(sources_batch[id])
-                sourceB = "".join(sources_batch[current_batch_size + id])
-                if prediction_A == prediction_B: # 其中一个换为source
-                    lcsA = len(_compute_lcs(sourceA, prediction_A))
-                    if lcsA < 8: # A的变化大
-                        prediction_B = sourceB
-                    else:
-                        lcsB = len(_compute_lcs(sourceB, prediction_B))
-                        if lcsA <= lcsB:  # A的变化大
-                            prediction_B = sourceB
-                        else:
-                            prediction_A = sourceA
-                            print(curLine(), batch_id, prediction_A, prediction_B, "target:", target, "current_batch_size=",
-                                current_batch_size, "lcsA=%d,lcsB=%d" % (lcsA, lcsB))
-                writer.write(f'{prediction_A}\t{prediction_B}\t{target}\n')
-
-                prediction_list.append("%s\t%s\n"% (sourceA, prediction_A))
-                # print(curLine(), id,"sourceA:", sourceA, "sourceB:",sourceB, "target:", target)
-                prediction_list.append("%s\t%s\n" % (sourceB, prediction_B))
-            num_predicted += current_batch_size
+            json_map = {"questions":sources_batch, "expands":expand_list}
+            json_str = json.dumps(json_map, ensure_ascii=False)
+            writer.write("%s\n" % json_str)
+            # input(curLine())
+            num_predicted += len(expand_list)
             if batch_id % 20 == 0:
                 cost_time = (time.time() - start_time) / 60.0
-                print(curLine(), id, prediction_A, prediction_B, "target:", target, "current_batch_size=", current_batch_size)
-                print(curLine(), id,"sourceA:", sourceA, "sourceB:",sourceB, "target:", target)
+                # print(curLine(), id, prediction_A, prediction_B, "target:", target, "current_batch_size=", current_batch_size)
+                # print(curLine(), id,"sourceA:", sourceA, "sourceB:",sourceB, "target:", target)
                 print("%s batch_id=%d/%d, predict %d/%d examples, cost %.2fmin." %
-                      (curLine(), batch_id + 1, batch_num, num_predicted, number, cost_time))
-    with open("prediction.txt", "w") as prediction_file:
-        prediction_file.writelines(prediction_list)
-        print(curLine(), "save to prediction_qa.txt.")
+                      (curLine(), batch_id + 1, len(sourcesA_list), num_predicted, num_predicted, cost_time))
     cost_time = (time.time() - start_time) / 60.0
-    print(curLine(), id, prediction_A, prediction_B, "target:", target, "current_batch_size=", current_batch_size)
-    print(curLine(), id, "sourceA:", sourceA, "sourceB:", sourceB, "target:", target)
-    logging.info(
-        f'{curLine()} {num_predicted} predictions saved to:{FLAGS.output_file}, cost {cost_time} min, ave {cost_time / num_predicted*60000}ms.')
+    # print(curLine(), id, prediction_A, prediction_B, "target:", target, "current_batch_size=", current_batch_size)
+    # print(curLine(), id, "sourceA:", sourceA, "sourceB:", sourceB, "target:", target)
+    # logging.info(
+    #     f'{curLine()} {num_predicted} predictions saved to:{FLAGS.output_file}, cost {cost_time} min, ave {cost_time / num_predicted*60000}ms.')
 
 if __name__ == '__main__':
     app.run(main)

@@ -38,6 +38,6 @@ def process(corpus_folder, raw_file_name, save_folder):
 if __name__ == "__main__":
   corpus_folder = "/home/cloudminds/Mywork/corpus/Chinese_QA/baoanairport"
   raw_file_name = "baoan_airport_processed.txt"
-  save_folder = "/home/cloudminds/Mywork/corpus/文本复述"
+  save_folder = "/home/cloudminds/Mywork/corpus/rephrase_corpus"
   process(corpus_folder, raw_file_name, save_folder)
 

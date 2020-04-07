@@ -47,7 +47,7 @@ def split(corpus_list, save_folder, trainRate=0.8):
 
 if __name__ == "__main__":
   raw_file_name = ["baoan_airport", "lcqmc", "baoan_airport_from_xlsx"]
-  save_folder = "/home/cloudminds/Mywork/corpus/文本复述"
+  save_folder = "/home/cloudminds/Mywork/corpus/rephrase_corpus"
   corpus_list = merge(raw_file_name, save_folder)
   split(corpus_list, save_folder, trainRate=0.8)
 
