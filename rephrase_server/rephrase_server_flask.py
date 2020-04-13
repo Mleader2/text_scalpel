@@ -1,5 +1,4 @@
 # 文本复述服务 基于tensorflow框架
-
 import os, sys
 from absl import flags
 from absl import logging
@@ -10,7 +9,6 @@ import logging
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 
-
 logger = logging.getLogger('log')
 logger.setLevel(logging.DEBUG)
 
@@ -18,9 +16,7 @@ while logger.hasHandlers():
     for i in logger.handlers:
         logger.removeHandler(i)
 
-
 user_name = ""  # wzk/
-# port=60000
 version="1.0.0.0"
 
 
@@ -33,9 +29,7 @@ import bert_example
 import predict_utils
 import tagging_converter
 import utils
-import math, time
 import tensorflow as tf
-from curLine_file import curLine
 # FLAGS = flags.FLAGS
 FLAGS = tf.app.flags.FLAGS
 flags.DEFINE_string(

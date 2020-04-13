@@ -1,198 +1,45 @@
 # LaserTagger
-#改进谷歌的LaserTagger模型，目前应用于文本复述。
-# 根据自己情况，修改"rephrase_server.sh"文件中的HOST_NAME等参数，使用命令"sh rephrase_server.sh"可以启动一个文本复述的服务
 
-Modify Chinese text, modified on LaserTagger Model. I name it "文本手术刀".
-LaserTagger is a text-editing model which predicts a sequence of token-level
-edit operations to transform a source text into a target text. The model
-currently supports four different edit operations:
 
-1. *Keep* the token.
-2. *Delete* the token.
-3. *Add* a phrase before the token.
-4. *Swap* the order of input sentences (if there are two of them).
+一．概述
+文本复述任务是指把一句/段文本A改写成文本B，要求文本B采用与文本A略有差异的表述方式来表达与之意思相近的文本。
+#改进谷歌的LaserTagger模型，使用LCQMC等中文语料训练文本复述模型，即修改一段文本并保持原有语义。
+复述的结果可用于数据增强，文本泛化，从而增加特定场景的语料规模，提高模型泛化能力。
+#根据自己情况，修改"rephrase_server.sh"文件中的HOST_NAME等参数，使用命令"sh rephrase_server.sh"可以启动一个文本复述的服务
+#有几个脚本文件如rephrase_for_qa.sh，rephrase_for_chat.sh，rephrase_for_skill.sh是作者自己办公需要的，可以忽略
 
-Operation 3 can be combined with 1 and 2. Compared to sequence-to-sequence
-models, LaserTagger is (1) less prone to hallucination, (2) more data efficient,
-and (3) faster at inference time.
 
-A detailed method description and evaluation can be found in our EMNLP'19 paper:
-[https://arxiv.org/abs/1909.01187](https://arxiv.org/abs/1909.01187)
+二．模型介绍
 
-LaserTagger is built on Python 3, Tensorflow and
-[BERT](https://github.com/google-research/bert). It works with CPU, GPU, and
-Cloud TPU.
+谷歌在文献《Encode, Tag, Realize: High-Precision Text Editing》中采用序列标注的框架进行文本编辑，在文本拆分和自动摘要任务上取得了最佳效果。
+在同样采用BERT作为编码器的条件下，本方法相比于Seq2Seq的方法具有更高的可靠度，更快的训练和推理效率，且在语料规模较小的情况下优势更明显。
 
-## Usage Instructions
+<p align="center"><img width="50%" src="AR_architecture.png" /></p>
 
-Running an experiment with LaserTagger consists of the following steps:
+谷歌公开了本文献对应的代码，但是原有任务与当前任务有一定的差异性，需要修改部分代码，主要修改如下：
+A.分词方式：原代码针对英文，以空格为间隔分成若干词。现在针对中文，分成若干字。
+B.推理效率：原代码每次只对一个文本进行复述，改成每次对batch_size个文本进行复述，推理效率提高6倍。
 
-1. Optimize the vocabulary of phrases that can be added by LaserTagger.
-2. Convert target texts into target tag sequences.
-3. Finetune a pretrained BERT model to predict the tags.
-4. Compute predictions.
-5. Evaluate the predictions.
 
-Next we go through these steps, using the Split-and-Rephrase
-([WikiSplit](https://github.com/google-research-datasets/wiki-split)) task as a
-running example.
 
-You can run all of the steps with
+三．实验效果
+1. 在公开数据集Wiki Split上复现模型：
+Wiki Split数据集是英文语料，训练模型将一句话拆分成两句话，并保持语义一致，语法合理，语义连贯通顺，如下图所示。
 
-```
-sh run_wikisplit_experiment.sh
-```
+<p align="center"><img width="50%" src="sentence_fusion_task.png" /></p>
 
-after setting the paths in the beginning of the script.
-
-**Note:** Text should be tokenized with spaces separating the tokens before applying LaserTagger.
-
-### 1. Phrase Vocabulary Optimization
-
-Download the [WikiSplit](https://github.com/google-research-datasets/wiki-split)
-dataset and run the following command to find a set of phrases that the model is
-allowed to add.
-
-```
-export WIKISPLIT_DIR=/path/to/wikisplit
-export OUTPUT_DIR=/path/to/output
-
-python phrase_vocabulary_optimization.py \
-  --input_file=${WIKISPLIT_DIR}/train.tsv \
-  --input_format=wikisplit \
-  --vocabulary_size=500 \
-  --max_input_examples=1000000 \
-  --output_file=${OUTPUT_DIR}/label_map.txt
-```
-
-Note that you can also set `max_input_examples` to a smaller value to get a
-reasonable vocabulary, but then you should sort the dataset rows in the case of
-WikiSplit. The rows are in an alphabetical order so taking first *k* of them
-might not give you a representative sample of the data.
-
-### 2. Converting Target Texts to Tags
-
-Download a pretrained BERT model from the
-[official repository](https://github.com/google-research/bert#pre-trained-models).
-We've used the 12-layer ''BERT-Base, Cased'' model for all of our experiments.
-Then convert the original TSV datasets into TFRecord format.
-
-```
-export BERT_BASE_DIR=/path/to/cased_L-12_H-768_A-12
-
-python preprocess_main.py \
-  --input_file=${WIKISPLIT_DIR}/tune.tsv \
-  --input_format=wikisplit \
-  --output_tfrecord=${OUTPUT_DIR}/tune.tf_record \
-  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-  --vocab_file=${BERT_BASE_DIR}/vocab.txt \
-  --output_arbitrary_targets_for_infeasible_examples=true
-
-python preprocess_main.py \
-    --input_file=${WIKISPLIT_DIR}/train.tsv \
-    --input_format=wikisplit \
-    --output_tfrecord=${OUTPUT_DIR}/train.tf_record \
-    --label_map_file=${OUTPUT_DIR}/label_map.txt \
-    --vocab_file=${BERT_BASE_DIR}/vocab.txt \
-    --output_arbitrary_targets_for_infeasible_examples=false
-```
-
-### 3. Model Training
-
-Model hyperparameters are specified in [lasertagger_config.json](configs/lasertagger_config.json). This configuration file extends
-`bert_config.json` which comes with the zipped pretrained BERT model.
-
-Note that if you want to **switch
-from using LaserTagger_FF to LaserTagger_AR**, you should set
-`"use_t2t_decoder": true` in the LaserTagger config. The latter is usually more
-accurate, whereas the former runs inference faster.
-
-Train the model on CPU/GPU.
-
-```
-# Check these numbers from the "*.num_examples" files created in step 2.
-export NUM_TRAIN_EXAMPLES=310922
-export NUM_EVAL_EXAMPLES=5000
-export CONFIG_FILE=configs/lasertagger_config.json
-export EXPERIMENT=wikisplit_experiment_name
-
-python run_lasertagger.py \
-  --training_file=${OUTPUT_DIR}/train.tf_record \
-  --eval_file=${OUTPUT_DIR}/tune.tf_record \
-  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-  --model_config_file=${CONFIG_FILE} \
-  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
-  --init_checkpoint=${BERT_BASE_DIR}/bert_model.ckpt \
-  --do_train=true \
-  --do_eval=true \
-  --train_batch_size=256 \
-  --save_checkpoints_steps=500 \
-  --num_train_examples=${NUM_TRAIN_EXAMPLES} \
-  --num_eval_examples=${NUM_EVAL_EXAMPLES}
-```
-
-To train on Cloud TPU, you should additionally set:
-
-```
-  --use_tpu=true \
-  --tpu_name=${TPU_NAME}
-```
-
-Please see [BERT TPU instructions](https://github.com/google-research/bert#fine-tuning-with-cloud-tpus) and the
-[Google Cloud TPU tutorial](https://cloud.google.com/tpu/docs/tutorials/mnist)
-for how to use Cloud TPUs.
-
-### 4. Prediction
-
-First you need to export your model.
-
-```
-python run_lasertagger.py \
-  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-  --model_config_file=${CONFIG_FILE} \
-  --output_dir=${OUTPUT_DIR}/models/${EXPERIMENT} \
-  --do_export=true \
-  --export_path=${OUTPUT_DIR}/models/${EXPERIMENT}/export
-```
-
-You can additionally use `init_checkpoint` to specify which checkpoint to export
-(the default is to export the latest).
-
-Compute the predicted tags and realize the output text with:
-
-```
-export SAVED_MODEL_DIR=/path/to/exported/model
-export PREDICTION_FILE=${OUTPUT_DIR}/models/${EXPERIMENT}/pred.tsv
-
-python predict_main.py \
-  --input_file=${WIKISPLIT_DIR}/validation.tsv \
-  --input_format=wikisplit \
-  --output_file=${PREDICTION_FILE} \
-  --label_map_file=${OUTPUT_DIR}/label_map.txt \
-  --vocab_file=${BERT_BASE_DIR}/vocab.txt \
-  --saved_model=${SAVED_MODEL_DIR}
-```
-
-Note that the above will run inference with batch size of 1 so it's not optimal
-in terms of inference time.
-
-### 5. Evaluation
-
-Compute the evaluation scores.
-
-```
-python score_main.py --prediction_file=${PREDICTION_FILE}
-```
-
-Example output:
-
-```
-Exact score:     15.220
-SARI score:      61.668
- KEEP score:     93.059
- ADDITION score: 32.168
- DELETION score: 59.778
-```
+Exact　score=15,SARI score=61.5,KEEP score=93,ADDITION score=32,DELETION score=59,
+基本与论文中的Exact score=15.2；SARI score=61.7一致（这些分数均为越高越好）。
+2. 在自己构造的中文数据集训练文本复述模型：
+（1）语料来源
+（A）一部分语料来自于LCQMC语料中的正例，即语义接近的一对文本；
+（B）另一部分语料来自于宝安机场用户QA下面同一答案的问题。
+因为模型的原理，要求文本A和B在具有一定的重合字数，故过滤掉上述两个来源中字面表述差异大的文本，如“我要去厕所”与“卫生间在哪里”。筛选后
+（2）测试结果：
+对25918对文本进行复述和自动化评估，评测分数如下（越高越好）：
+Exact score=29,SARI score=64,KEEP score=84,ADDITION score=39,DELETION score=66.
+CPU上耗时0.5小时，平均复述一句话需要0.72秒。
+可能是语言和任务不同，在中文文本复述上的评测分数比公开数据集高一些。
 
 ## How to Cite LaserTagger
 
@@ -208,12 +55,3 @@ SARI score:      61.668
 ## License
 
 Apache 2.0; see [LICENSE](LICENSE) for details.
-
-## Disclaimer
-
-This repository contains a Python reimplementation of our original
-C++ code used for the paper and thus some discrepancies compared to the paper
-results are possible. However, we've verified that we get the similar results on
-the WikiSplit dataset.
-
-This is not an official Google product.
