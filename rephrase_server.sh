@@ -8,15 +8,9 @@
 
 # 房山
 # pyenv activate python363tf111
-# pip install bert-tensorflow==1.0.1
-
-#scp -r /home/cloudminds/PycharmProjects/lasertagger-Chinese/predict_main.py  cloudminds@10.13.33.128:/home/cloudminds/PycharmProjects/lasertagger-Chinese
-#scp -r cloudminds@10.13.33.128:/home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name /home/cloudminds/Mywork/corpus/文本复述/output/models/
-# watch -n 1 nvidia-smi
-
 start_tm=`date +%s%N`;
 
-export HOST_NAME="cloudminds" #"wzk" # 　 　
+export HOST_NAME="cloudminds"
 ### Optional parameters ###
 
 # If you train multiple models on the same data, change this label.
@@ -83,9 +77,9 @@ export EXPERIMENT=wikisplit_experiment_name
 #  --export_path=${OUTPUT_DIR}/models/${EXPERIMENT}/export
 
 ## Get the most recently exported model directory.
-#TIMESTAMP=$(ls "${OUTPUT_DIR}/models/${EXPERIMENT}/export/" | \
-#            grep -v "temp-" | sort -r | head -1)
-SAVED_MODEL_DIR=${OUTPUT_DIR}/models/${EXPERIMENT}/export/1583729652
+TIMESTAMP=$(ls "${OUTPUT_DIR}/models/${EXPERIMENT}/export/" | \
+            grep -v "temp-" | sort -r | head -1)
+SAVED_MODEL_DIR=${OUTPUT_DIR}/models/${EXPERIMENT}/export/${TIMESTAMP}
 label_map_file=${OUTPUT_DIR}/label_map.txt
 export host="0.0.0.0"
 export port=6000

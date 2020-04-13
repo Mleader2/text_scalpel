@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *-notice.txt
+score.txt
 
 # C extensions
 *.so

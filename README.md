@@ -1,14 +1,8 @@
 # LaserTagger
+#改进谷歌的LaserTagger模型，目前应用于文本复述。
+# 根据自己情况，修改"rephrase_server.sh"文件中的HOST_NAME等参数，使用命令"sh rephrase_server.sh"可以启动一个文本复述的服务
 
-
-git clone https://github.com/Mleader2/text_scalpel.git
-git pull
-git push
-https://github.com/Mleader2/text_scalpel
-
-
-
-
+Modify Chinese text, modified on LaserTagger Model. I name it "文本手术刀".
 LaserTagger is a text-editing model which predicts a sequence of token-level
 edit operations to transform a source text into a target text. The model
 currently supports four different edit operations:
