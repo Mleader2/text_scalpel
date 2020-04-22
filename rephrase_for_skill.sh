@@ -3,23 +3,8 @@
 # predict_for_skill.py: 在 predict_main.py基础上改的
 # score_for_skill.txt 结果对比
 
-
-#　成都
-# pyenv activate python373tf115
-# pip install -i https://pypi.douban.com/simple/ bert-tensorflow==1.0.1
-#pip install -i https://pypi.douban.com/simple/ tensorflow==1.15.0
-#python -m pip install --upgrade pip -i https://pypi.douban.com/simple
-
 # set gpu id to use
 export CUDA_VISIBLE_DEVICES=""
-
-# 房山
-# pyenv activate python363tf111
-# pip install bert-tensorflow==1.0.1
-
-#scp -r /home/cloudminds/PycharmProjects/lasertagger-Chinese/predict_main.py  cloudminds@10.13.33.128:/home/cloudminds/PycharmProjects/lasertagger-Chinese
-#scp -r cloudminds@10.13.33.128:/home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name /home/cloudminds/Mywork/corpus/文本复述/output/models/
-# watch -n 1 nvidia-smi
 
 start_tm=`date +%s%N`;
 

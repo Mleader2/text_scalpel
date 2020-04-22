@@ -105,7 +105,6 @@ def returnPost():
     data_json = {'version': version}
     try:
         question_raw_batch = request.json['text_list']
-        # question_raw = question_raw_list[0]
     except TypeError:
         data_json['status'] = -1
         data_json['message'] = "Fail:input information type error"
@@ -114,31 +113,16 @@ def returnPost():
     question_batch = []
     for question_raw in question_raw_batch:
         question_batch.append([question_raw.strip()])
-    # logger.info('question: %s' % (question_raw_batch))
-    # if len(question_raw) > FLAGS.max_seq_length*3:
-    #     data_json['status'] = -1
-    #     data_json['message'] = "Fail:the length of the input question must not exceed %d"% FLAGS.max_seq_length*3
-    #     data_json['data'] = []
-    #     print(curLine(), "status=%d, message:%s" % (data_json['status'],data_json['message']))
-    #     return json.dumps(data_json, cls=MyEncoder, ensure_ascii=False)
-    # if not question_raw or len(question_raw) == 0:
-    #     data_json['status'] = -1
-    #     data_json['message'] = "Fail:input information illegal"
-    #     data_json['data'] = []
-    #     print(curLine(), "status=%d, message:%s" % (data_json['status'],data_json['message']))
-    #     return json.dumps(data_json, cls=MyEncoder, ensure_ascii=False)
     decoded_output = rHandler.infer(question_batch)
     if len(decoded_output) == 0:
         data_json['status'] = -1
-        data_json['message'] = "Fail: fail to get the summary of the article."
+        data_json['message'] = "Fail: fail to get the retell of the text."
         data_json['data'] = []
         return json.dumps(data_json, cls=MyEncoder, ensure_ascii=False)
     data_json['status'] = 0
     data_json['message'] = "Success"
     data_json['data'] = {}
     data_json['data']['output'] = decoded_output
-    # endtime = datetime.datetime.now()
-    # print('time:', (endtime - starttime).microseconds)
     return json.dumps(data_json, cls=MyEncoder, ensure_ascii=False)
 
 rHandler = RequestHandler()

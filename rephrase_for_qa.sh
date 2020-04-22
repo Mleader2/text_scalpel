@@ -1,22 +1,4 @@
 # 扩充文本匹配的语料  文本复述任务
-#　成都
-# pyenv activate python373tf115
-# pip install -i https://pypi.douban.com/simple/ bert-tensorflow==1.0.1
-#pip install -i https://pypi.douban.com/simple/ tensorflow==1.15.0
-#python -m pip install --upgrade pip -i https://pypi.douban.com/simple
-
-
-# 房山
-# pyenv activate python363tf111
-# pip install bert-tensorflow==1.0.1
-# ＣＰＵ上需要３５０ｍｉｎ
-
-
-# 23.6   /mnt1/shixi/share/data/sentences_similarity/Chinese QA语料
-#scp -r /home/cloudminds/PycharmProjects/lasertagger-Chinese/predict_main.py  cloudminds@10.13.33.128:/home/cloudminds/PycharmProjects/lasertagger-Chinese
-#scp -r cloudminds@10.13.33.128:/home/wzk/Mywork/corpus/文本复述/output/models/wikisplit_experiment_name /home/cloudminds/Mywork/corpus/文本复述/output/models/
-# watch -n 1 nvidia-smi
-
 # set gpu id to use
 export CUDA_VISIBLE_DEVICES=""
 
