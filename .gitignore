@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 *-notice.txt
 score.txt
-
+.idea/
 # C extensions
 *.so
 
