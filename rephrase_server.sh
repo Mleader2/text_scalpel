@@ -10,9 +10,9 @@ EXPERIMENT=wikisplit_experiment
 # smaller value (e.g. 0.01).
 
 export TRAIN_BATCH_SIZE=256
-PHRASE_VOCAB_SIZE=500
-MAX_INPUT_EXAMPLES=1000000
-SAVE_CHECKPOINT_STEPS=200
+export PHRASE_VOCAB_SIZE=500
+export MAX_INPUT_EXAMPLES=1000000
+export SAVE_CHECKPOINT_STEPS=200
 export enable_swap_tag=false
 export output_arbitrary_targets_for_infeasible_examples=false
 export WIKISPLIT_DIR="/home/${HOST_NAME}/Mywork/corpus/rephrase_corpus"

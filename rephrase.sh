@@ -16,14 +16,14 @@ EXPERIMENT=wikisplit_experiment
 # To quickly test that model training works, set the number of epochs to a
 # smaller value (e.g. 0.01).
 NUM_EPOCHS=10.0
-export TRAIN_BATCH_SIZE=256  # 512 OOM   256 OK
-PHRASE_VOCAB_SIZE=500
-MAX_INPUT_EXAMPLES=1000000
-SAVE_CHECKPOINT_STEPS=200
+export TRAIN_BATCH_SIZE=256
+export PHRASE_VOCAB_SIZE=500
+export MAX_INPUT_EXAMPLES=1000000
+export SAVE_CHECKPOINT_STEPS=200
 export enable_swap_tag=false
 export output_arbitrary_targets_for_infeasible_examples=false
 export WIKISPLIT_DIR="/home/${HOST_NAME}/Mywork/corpus/rephrase_corpus"
-export BERT_BASE_DIR="/home/${HOST_NAME}/Mywork/model/RoBERTa-tiny-clue" # chinese_L-12_H-768_A-12"
+export BERT_BASE_DIR="/home/${HOST_NAME}/Mywork/model/RoBERTa-tiny-clue"
 export OUTPUT_DIR="${WIKISPLIT_DIR}/output"
 
 python phrase_vocabulary_optimization.py \
@@ -45,7 +45,7 @@ python preprocess_main.py \
   --label_map_file=${OUTPUT_DIR}/label_map.txt \
   --vocab_file=${BERT_BASE_DIR}/vocab.txt \
   --max_seq_length=${max_seq_length} \
-  --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples}  # TODO true
+  --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples}
 
 python preprocess_main.py \
     --input_file=${WIKISPLIT_DIR}/train.txt \
@@ -54,7 +54,7 @@ python preprocess_main.py \
     --label_map_file=${OUTPUT_DIR}/label_map.txt \
     --vocab_file=${BERT_BASE_DIR}/vocab.txt \
     --max_seq_length=${max_seq_length} \
-    --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples} # TODO false
+    --output_arbitrary_targets_for_infeasible_examples=${output_arbitrary_targets_for_infeasible_examples}
 
 
 

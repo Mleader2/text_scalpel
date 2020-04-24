@@ -8,7 +8,7 @@ export CUDA_VISIBLE_DEVICES=""
 
 start_tm=`date +%s%N`;
 
-export HOST_NAME="cloudminds" #　 　"wzk" #
+export HOST_NAME="wzk"
 ### Optional parameters ###
 
 # If you train multiple models on the same data, change this label.
@@ -16,10 +16,10 @@ EXPERIMENT=wikisplit_experiment
 # To quickly test that model training works, set the number of epochs to a
 # smaller value (e.g. 0.01).
 NUM_EPOCHS=10.0
-export TRAIN_BATCH_SIZE=256  # 512 OOM   256 OK
-PHRASE_VOCAB_SIZE=500
-MAX_INPUT_EXAMPLES=1000000
-SAVE_CHECKPOINT_STEPS=200
+export TRAIN_BATCH_SIZE=256
+export PHRASE_VOCAB_SIZE=500
+export MAX_INPUT_EXAMPLES=1000000
+export SAVE_CHECKPOINT_STEPS=200
 export enable_swap_tag=false
 export output_arbitrary_targets_for_infeasible_examples=false
 export WIKISPLIT_DIR="/home/${HOST_NAME}/Mywork/corpus/rephrase_corpus"

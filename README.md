@@ -19,13 +19,21 @@ B.推理效率：原代码每次只对一个文本进行复述，改成每次对
 三.文件说明和实验步骤  
 1.安装python模块
 参见"requirements.txt", "rephrase.sh"
-2.训练和评测模型  
+2.下载预训练模型
+考虑模型推理的效率，目前本项目采用RoBERTa-tiny-clue（中文版）预训练模型。
+由于目前网络上有不同版本，现将本项目使用的预训练模型上传的百度网盘。链接: https://pan.baidu.com/s/1yho8ihR9C6rBbY-IJjSagA 提取码: 2a97
+如果想采用其他预训练模型，请修改“configs/lasertagger_config.json".
+3.训练和评测模型  
 根据自己情况修改脚本"rephrase.sh"中2个文件夹的路径，然后运行  sh rephrase.sh
 脚本中的变量HOST_NAME是作者为了方便设定路径使用的，请根据自己情况修改；  
 如果只是离线的对文本进行批量的泛化，可以注释脚本中其他部分，只用predict_main.py就可以满足需求。  
-3.启动文本复述服务  根据自己需要，可选  
+4.启动文本复述服务  根据自己需要，可选  
 根据自己情况修改"rephrase_server.sh"文件中几个文件夹的路径，使用命令"sh rephrase_server.sh"可以启动一个文本复述的API服务  
 本API服务可以接收一个http的POST请求，解析并对其中的文本进行泛化，具体接口请看“rephrase_server/rephrase_server_flask.py"  
+
+文本复述的语料需要自己整理语义一致的文本对。如果用自己业务场景下的语料最好，当然数量不能太少，如果没有或不够就加上LCQMC等语料中的正例。
+然后用最长公共子串的长度限制一下，因为这个方法要求source和target的字面表达不能差异过大，可以参考一下“get_text_pair_lcqmc.py”。
+目前，我的train.txt,tune.txt中都是三列即text1,text2,lcs_score,之间用tab"\t"分割。
 
 有几个脚本文件如rephrase_for_qa.sh，rephrase_for_chat.sh，rephrase_for_skill.sh是作者自己办公需要的，可以忽略  
 

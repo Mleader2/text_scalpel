@@ -256,31 +256,6 @@ def main(_):
         drop_remainder=True)
     estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
 
-  # if FLAGS.do_eval: # occur error
-  #   # This tells the estimator to run through the entire set.
-  #   eval_steps = None
-  #   # However, if running eval on the TPU, you will need to specify the
-  #   # number of steps.
-  #   if FLAGS.use_tpu:
-  #     # Eval will be slightly WRONG on the TPU because it will truncate
-  #     # the last batch.
-  #     eval_steps, _ = _calculate_steps(FLAGS.num_eval_examples,
-  #                                      FLAGS.eval_batch_size, 1)
-  #
-  #   eval_drop_remainder = True if FLAGS.use_tpu else False
-  #   eval_input_fn = file_based_input_fn_builder(
-  #       input_file=FLAGS.eval_file, # FLAGS.training_file, #
-  #       max_seq_length=FLAGS.max_seq_length,
-  #       is_training=False, # True, # TODO
-  #       drop_remainder=eval_drop_remainder)
-  #
-  #   for ckpt in tf.contrib.training.checkpoints_iterator(
-  #       FLAGS.output_dir, timeout=FLAGS.eval_timeout):
-  #     result = estimator.evaluate(input_fn=eval_input_fn,  checkpoint_path=ckpt,
-  #                                 steps=eval_steps)
-  #     for key in sorted(result):
-  #       tf.logging.info("  %s = %s", key, str(result[key]))
-
   if FLAGS.do_export:
     tf.logging.info("Exporting the model...")
     def serving_input_fn():

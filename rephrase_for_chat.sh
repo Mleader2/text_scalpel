@@ -3,8 +3,6 @@
 
 # set gpu id to use
 export CUDA_VISIBLE_DEVICES=""
-
-
 start_tm=`date +%s%N`;
 
 export HOST_NAME="wzk"
@@ -15,10 +13,10 @@ EXPERIMENT=wikisplit_experiment
 # To quickly test that model training works, set the number of epochs to a
 # smaller value (e.g. 0.01).
 NUM_EPOCHS=60.0
-export TRAIN_BATCH_SIZE=256  # 512 OOM   256 OK
-PHRASE_VOCAB_SIZE=500
-MAX_INPUT_EXAMPLES=1000000
-SAVE_CHECKPOINT_STEPS=200
+export TRAIN_BATCH_SIZE=256
+export PHRASE_VOCAB_SIZE=500
+export MAX_INPUT_EXAMPLES=1000000
+export SAVE_CHECKPOINT_STEPS=200
 export enable_swap_tag=true
 export output_arbitrary_targets_for_infeasible_examples=false
 export WIKISPLIT_DIR="/home/${HOST_NAME}/Mywork/corpus/rephrase_corpus"
