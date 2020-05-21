@@ -15,7 +15,7 @@ export HOST_NAME="wzk"
 EXPERIMENT=wikisplit_experiment
 # To quickly test that model training works, set the number of epochs to a
 # smaller value (e.g. 0.01).
-NUM_EPOCHS=10.0
+export num_train_epochs=3
 export TRAIN_BATCH_SIZE=256
 export PHRASE_VOCAB_SIZE=500
 export MAX_INPUT_EXAMPLES=1000000
@@ -75,6 +75,7 @@ python run_lasertagger.py \
   --init_checkpoint=${BERT_BASE_DIR}/bert_model.ckpt \
   --do_train=true \
   --do_eval=true \
+  --num_train_epochs=num_train_epochs \
   --train_batch_size=${TRAIN_BATCH_SIZE} \
   --save_checkpoints_steps=200 \
   --max_seq_length=${max_seq_length} \
