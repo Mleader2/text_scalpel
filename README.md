@@ -6,7 +6,6 @@
 
 
 二．模型介绍
-
 谷歌在文献《Encode, Tag, Realize: High-Precision Text Editing》中采用序列标注的框架进行文本编辑，在文本拆分和自动摘要任务上取得了最佳效果。  
 在同样采用BERT作为编码器的条件下，本方法相比于Seq2Seq的方法具有更高的可靠度，更快的训练和推理效率，且在语料规模较小的情况下优势更明显。  
 
@@ -22,7 +21,7 @@ B.推理效率：原代码每次只对一个文本进行复述，改成每次对
 2.下载预训练模型
 考虑模型推理的效率，目前本项目采用RoBERTa-tiny-clue（中文版）预训练模型。
 由于目前网络上有不同版本，现将本项目使用的预训练模型上传的百度网盘。链接: https://pan.baidu.com/s/1yho8ihR9C6rBbY-IJjSagA 提取码: 2a97
-如果想采用其他预训练模型，请修改“configs/lasertagger_config.json".
+如果想采用其他预训练模型，请修改“configs/lasertagger_config.json".  
 3.训练和评测模型  
 根据自己情况修改脚本"rephrase.sh"中2个文件夹的路径，然后运行  sh rephrase.sh
 脚本中的变量HOST_NAME是作者为了方便设定路径使用的，请根据自己情况修改；  
