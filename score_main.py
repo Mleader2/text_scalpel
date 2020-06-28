@@ -54,9 +54,11 @@ def main(argv):
       FLAGS.prediction_file, FLAGS.case_insensitive)
   logging.info(f'Read file: {FLAGS.prediction_file}')
   exact = score_lib.compute_exact_score(predictions, target_lists)
+  bleu = score_lib.bleu(predictions, target_lists)
   sari, keep, addition, deletion = score_lib.compute_sari_scores(
       sources, predictions, target_lists)
   print(f'Exact score:     {100*exact:.3f}')
+  print(f'Bleu score:     {100*bleu:.3f}')
   print(f'SARI score:      {100*sari:.3f}')
   print(f' KEEP score:     {100*keep:.3f}')
   print(f' ADDITION score: {100*addition:.3f}')

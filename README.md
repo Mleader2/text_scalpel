@@ -23,8 +23,8 @@ B.推理效率：原代码每次只对一个文本进行复述，改成每次对
 由于目前网络上有不同版本，现将本项目使用的预训练模型上传的百度网盘。链接: https://pan.baidu.com/s/1yho8ihR9C6rBbY-IJjSagA 提取码: 2a97  
 如果想采用其他预训练模型，请修改“configs/lasertagger_config.json".  
 3.训练和评测模型  
-根据自己情况修改脚本"rephrase.sh"中2个文件夹的路径，然后运行  sh rephrase.sh
-脚本中的变量HOST_NAME是作者为了方便设定路径使用的，请根据自己情况修改；  
+根据自己情况修改脚本"rephrase.sh"中2个文件夹的路径，然后运行  bash rephrase.sh HOST_NAME
+变量HOST_NAME是作者为了方便设定路径使用的，请根据自己情况修改；  
 如果只是离线的对文本进行批量的泛化，可以注释脚本中其他部分，只用predict_main.py就可以满足需求。  
 4.启动文本复述服务  根据自己需要，可选  
 根据自己情况修改"rephrase_server.sh"文件中几个文件夹的路径，使用命令"sh rephrase_server.sh"可以启动一个文本复述的API服务.  
