@@ -27,6 +27,7 @@ import numpy as np
 import tensorflow as tf
 import sari_hook
 import utils
+from curLine_file import curLine
 
 def read_data(
         path,
@@ -49,8 +50,10 @@ def read_data(
     sources = []
     predictions = []
     target_lists = []
-    with tf.io.gfile.GFile(path) as f:
-        for line in f:
+    with tf.gfile.GFile(path) as f:
+        for line_id, line in enumerate(f):
+            if line_id == 0:
+                continue
             source, pred, *targets = line.rstrip('\n').split('\t')
             if lowercase:
                 source = source.lower()
@@ -78,12 +81,6 @@ def compute_exact_score(predictions,
     """
     num_matches = sum(any(pred == target for target in targets)
                       for pred, targets in zip(predictions, target_lists))
-    # num_matches=0.0
-    # for pred, targets in zip(predictions, target_lists):
-    #   for target in targets:
-    #     if pred == target:
-    #       num_matches += 1
-    #       break
     return num_matches / max(len(predictions), 0.1)  # Avoids 0/0.
 
 
@@ -103,13 +100,18 @@ def bleu(hyps, refs_list):
 
         score = bleu_score.sentence_bleu(
             refs, hyp,
-            smoothing_function=bleu_score.SmoothingFunction().method7,
+            smoothing_function=None, # bleu_score.SmoothingFunction().method7,
             weights=[1, 0, 0, 0])
+        # input(curLine())
+        if score > 1.0:
+            print(curLine(), refs, hyp)
+            print(curLine(), "score=", score)
+            input(curLine())
         bleu_1.append(score)
 
         score = bleu_score.sentence_bleu(
             refs, hyp,
-            smoothing_function=bleu_score.SmoothingFunction().method7,
+            smoothing_function=None, # bleu_score.SmoothingFunction().method7,
             weights=[0.5, 0.5, 0, 0])
         bleu_2.append(score)
     bleu_1 = np.average(bleu_1)
@@ -153,9 +155,9 @@ def compute_sari_scores(
             source = re.sub(' <::::> ', ' ', source)
             pred = re.sub(' <::::> ', ' ', pred)
             targets = [re.sub(' <::::> ', ' ', t) for t in targets]
-        source_ids = utils.get_token_list(source)
-        pred_ids = utils.get_token_list(pred)
-        list_of_targets = [utils.get_token_list(t) for t in targets]
+        source_ids = list(source)  #  utils.get_token_list(source)
+        pred_ids = list(pred)  #  utils.get_token_list(pred)
+        list_of_targets = [list(t) for t in targets]
         sari, keep, addition, deletion = sari_hook.get_sari_score(
             source_ids, pred_ids, list_of_targets, beta_for_deletion=1)
         sari_sum += sari

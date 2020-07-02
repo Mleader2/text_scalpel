@@ -56,7 +56,7 @@ flags.DEFINE_string(
 flags.DEFINE_string('vocab_file', None, 'Path to the BERT vocabulary file.')
 flags.DEFINE_integer('max_seq_length', 128, 'Maximum sequence length.')
 flags.DEFINE_bool(
-    'do_lower_case', False,
+    'do_lower_case', True,
     'Whether to lower case the input text. Should be True for uncased '
     'models and False for cased models.')
 flags.DEFINE_bool('enable_swap_tag', True, 'Whether to enable the SWAP tag.')
@@ -71,59 +71,60 @@ flags.DEFINE_bool(
 
 
 def _write_example_count(count: int) -> Text:
-  """Saves the number of converted examples to a file.
+    """Saves the number of converted examples to a file.
 
-  This count is used when determining the number of training steps.
+    This count is used when determining the number of training steps.
 
-  Args:
-    count: The number of converted examples.
+    Args:
+      count: The number of converted examples.
 
-  Returns:
-    The filename to which the count is saved.
-  """
-  count_fname = FLAGS.output_tfrecord + '.num_examples.txt'
-  with tf.io.gfile.GFile(count_fname, 'w') as count_writer:
-    count_writer.write(str(count))
-  return count_fname
+    Returns:
+      The filename to which the count is saved.
+    """
+    count_fname = FLAGS.output_tfrecord + '.num_examples.txt'
+    with tf.io.gfile.GFile(count_fname, 'w') as count_writer:
+        count_writer.write(str(count))
+    return count_fname
 
 
 def main(argv):
-  if len(argv) > 1:
-    raise app.UsageError('Too many command-line arguments.')
-  flags.mark_flag_as_required('input_file')
-  flags.mark_flag_as_required('input_format')
-  flags.mark_flag_as_required('output_tfrecord')
-  flags.mark_flag_as_required('label_map_file')
-  flags.mark_flag_as_required('vocab_file')
+    if len(argv) > 1:
+        raise app.UsageError('Too many command-line arguments.')
+    flags.mark_flag_as_required('input_file')
+    flags.mark_flag_as_required('input_format')
+    flags.mark_flag_as_required('output_tfrecord')
+    flags.mark_flag_as_required('label_map_file')
+    flags.mark_flag_as_required('vocab_file')
 
-  label_map = utils.read_label_map(FLAGS.label_map_file)
-  converter = tagging_converter.TaggingConverter(
-      tagging_converter.get_phrase_vocabulary_from_label_map(label_map), # phrase_vocabulary  set
-      FLAGS.enable_swap_tag)
-  # print(curLine(), len(label_map), "label_map:", label_map, converter._max_added_phrase_length)
-  builder = bert_example.BertExampleBuilder(label_map, FLAGS.vocab_file,
-                                            FLAGS.max_seq_length,
-                                            FLAGS.do_lower_case, converter)
+    label_map = utils.read_label_map(FLAGS.label_map_file)
+    tokenizer = utils.my_tokenizer_class(FLAGS.vocab_file, do_lower_case=FLAGS.do_lower_case)
+    converter = tagging_converter.TaggingConverter(
+        tagging_converter.get_phrase_vocabulary_from_label_map(label_map),  # phrase_vocabulary  set
+        FLAGS.enable_swap_tag, tokenizer=tokenizer)
+    # print(curLine(), len(label_map), "label_map:", label_map, converter._max_added_phrase_length)
+    builder = bert_example.BertExampleBuilder(label_map, FLAGS.vocab_file,
+                                              FLAGS.max_seq_length,
+                                              FLAGS.do_lower_case, converter)
 
-  num_converted = 0
-  with tf.io.TFRecordWriter(FLAGS.output_tfrecord) as writer:
-    for i, (sources, target) in enumerate(utils.yield_sources_and_targets(
-        FLAGS.input_file, FLAGS.input_format)):
-      logging.log_every_n(
-          logging.INFO,
-          f'{i} examples processed, {num_converted} converted to tf.Example.',
-          10000)
-      example = builder.build_bert_example(
-          sources, target,
-          FLAGS.output_arbitrary_targets_for_infeasible_examples)
-      if example is None:
-        continue # 根据output_arbitrary_targets_for_infeasible_examples，不能转化的忽略或随机，如果随机也会加到num_converted
-      writer.write(example.to_tf_example().SerializeToString())
-      num_converted += 1
-  logging.info(f'Done. {num_converted} examples converted to tf.Example.')
-  count_fname = _write_example_count(num_converted)
-  logging.info(f'Wrote:\n{FLAGS.output_tfrecord}\n{count_fname}')
+    num_converted = 0
+    with tf.io.TFRecordWriter(FLAGS.output_tfrecord) as writer:
+        for i, (sources, target) in enumerate(utils.yield_sources_and_targets(
+                FLAGS.input_file, FLAGS.input_format)):
+            logging.log_every_n(
+                logging.INFO,
+                f'{i} examples processed, {num_converted} converted to tf.Example.',
+                10000)
+            example = builder.build_bert_example(
+                sources, target,
+                FLAGS.output_arbitrary_targets_for_infeasible_examples)
+            if example is None:
+                continue  # 根据output_arbitrary_targets_for_infeasible_examples，不能转化的忽略或随机，如果随机也会加到num_converted
+            writer.write(example.to_tf_example().SerializeToString())
+            num_converted += 1
+    logging.info(f'Done. {num_converted} examples converted to tf.Example.')
+    count_fname = _write_example_count(num_converted)
+    logging.info(f'Wrote:\n{FLAGS.output_tfrecord}\n{count_fname}')
 
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)

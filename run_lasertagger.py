@@ -18,16 +18,12 @@
 
 from __future__ import absolute_import
 from __future__ import division
-
 from __future__ import print_function
-
-# from tensorflow.contrib import tpu as contrib_tpu
+import os
+import tensorflow as tf
 from absl import flags
-
 import run_lasertagger_utils
 import utils
-
-import tensorflow as tf
 from curLine_file import curLine
 
 FLAGS = flags.FLAGS
@@ -59,7 +55,7 @@ flags.DEFINE_string(
     "exporting, one can optionally provide path to a particular checkpoint to "
     "be exported here.")
 flags.DEFINE_integer(
-    "max_seq_length", 128, # contain CLS and SEP
+    "max_seq_length", 128,  # contain CLS and SEP
     "The maximum total input sequence length after WordPiece tokenization. "
     "Sequences longer than this will be truncated, and sequences shorter than "
     "this will be padded.")
@@ -72,7 +68,6 @@ flags.DEFINE_integer(
     "eval_timeout", 600,
     "The maximum amount of time (in seconds) for eval worker to wait between "
     "checkpoints.")
-
 
 flags.DEFINE_integer("train_batch_size", 32, "Total batch size for training.")
 flags.DEFINE_integer("eval_batch_size", 8, "Total batch size for eval.")
@@ -122,160 +117,162 @@ flags.DEFINE_string("export_path", None, "Path to save the exported model.")
 
 def file_based_input_fn_builder(input_file, max_seq_length,
                                 is_training, drop_remainder):
-  """Creates an `input_fn` closure to be passed to TPUEstimator."""
+    """Creates an `input_fn` closure to be passed to TPUEstimator."""
 
-  name_to_features = {
-      "input_ids": tf.FixedLenFeature([max_seq_length], tf.int64),
-      "input_mask": tf.FixedLenFeature([max_seq_length], tf.int64),
-      "segment_ids": tf.FixedLenFeature([max_seq_length], tf.int64),
-      "labels": tf.FixedLenFeature([max_seq_length], tf.int64),
-      "labels_mask": tf.FixedLenFeature([max_seq_length], tf.int64),
-  }
+    name_to_features = {
+        "input_ids": tf.FixedLenFeature([max_seq_length], tf.int64),
+        "input_mask": tf.FixedLenFeature([max_seq_length], tf.int64),
+        "segment_ids": tf.FixedLenFeature([max_seq_length], tf.int64),
+        "labels": tf.FixedLenFeature([max_seq_length], tf.int64),
+        "labels_mask": tf.FixedLenFeature([max_seq_length], tf.int64),
+    }
 
-  def _decode_record(record, name_to_features):
-    """Decodes a record to a TensorFlow example."""
-    example = tf.parse_single_example(record, name_to_features)
+    def _decode_record(record, name_to_features):
+        """Decodes a record to a TensorFlow example."""
+        example = tf.parse_single_example(record, name_to_features)
 
-    # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
-    # So cast all int64 to int32.
-    for name in list(example.keys()):
-      t = example[name]
-      if t.dtype == tf.int64:
-        t = tf.to_int32(t)
-      example[name] = t
+        # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
+        # So cast all int64 to int32.
+        for name in list(example.keys()):
+            t = example[name]
+            if t.dtype == tf.int64:
+                t = tf.to_int32(t)
+            example[name] = t
 
-    return example
+        return example
 
-  def input_fn(params):
-    """The actual input function."""
-    d = tf.data.TFRecordDataset(input_file)
-    # For training, we want a lot of parallel reading and shuffling.
-    # For eval, we want no shuffling and parallel reading doesn't matter.
-    if is_training:
-      d = d.repeat()  # 每ｅｐｏｃｈ重复使用
-      d = d.shuffle(buffer_size=100)
-    d = d.apply(
-        tf.contrib.data.map_and_batch(
-            lambda record: _decode_record(record, name_to_features),
-            batch_size=params["batch_size"],
-            drop_remainder=drop_remainder))
-    return d
+    def input_fn(params):
+        """The actual input function."""
+        d = tf.data.TFRecordDataset(input_file)
+        # For training, we want a lot of parallel reading and shuffling.
+        # For eval, we want no shuffling and parallel reading doesn't matter.
+        if is_training:
+            d = d.repeat()  # 每ｅｐｏｃｈ重复使用
+            d = d.shuffle(buffer_size=100)
+        d = d.apply(
+            tf.contrib.data.map_and_batch(
+                lambda record: _decode_record(record, name_to_features),
+                batch_size=params["batch_size"],
+                drop_remainder=drop_remainder))
+        return d
 
-  return input_fn
+    return input_fn
 
 
 def _calculate_steps(num_examples, batch_size, num_epochs, warmup_proportion=0):
-  """Calculates the number of steps.
+    """Calculates the number of steps.
 
-  Args:
-    num_examples: Number of examples in the dataset.
-    batch_size: Batch size.
-    num_epochs: How many times we should go through the dataset.
-    warmup_proportion: Proportion of warmup steps.
+    Args:
+      num_examples: Number of examples in the dataset.
+      batch_size: Batch size.
+      num_epochs: How many times we should go through the dataset.
+      warmup_proportion: Proportion of warmup steps.
 
-  Returns:
-    Tuple (number of steps, number of warmup steps).
-  """
-  steps = int(num_examples / batch_size * num_epochs)
-  warmup_steps = int(warmup_proportion * steps)
-  return steps, warmup_steps
+    Returns:
+      Tuple (number of steps, number of warmup steps).
+    """
+    steps = int(num_examples / batch_size * num_epochs)
+    warmup_steps = int(warmup_proportion * steps)
+    return steps, warmup_steps
 
 
 def main(_):
-  tf.logging.set_verbosity(tf.logging.INFO)
+    tf.logging.set_verbosity(tf.logging.INFO)
 
-  if not (FLAGS.do_train or FLAGS.do_eval or FLAGS.do_export):
-    raise ValueError("At least one of `do_train`, `do_eval` or `do_export` must"
-                     " be True.")
+    if not (FLAGS.do_train or FLAGS.do_eval or FLAGS.do_export):
+        raise ValueError("At least one of `do_train`, `do_eval` or `do_export` must"
+                         " be True.")
 
-  model_config = run_lasertagger_utils.LaserTaggerConfig.from_json_file(
-      FLAGS.model_config_file)
+    model_config = run_lasertagger_utils.LaserTaggerConfig.from_json_file(
+        FLAGS.model_config_file)
 
-  if FLAGS.max_seq_length > model_config.max_position_embeddings:
-    raise ValueError(
-        "Cannot use sequence length %d because the BERT model "
-        "was only trained up to sequence length %d" %
-        (FLAGS.max_seq_length, model_config.max_position_embeddings))
+    if FLAGS.max_seq_length > model_config.max_position_embeddings:
+        raise ValueError(
+            "Cannot use sequence length %d because the BERT model "
+            "was only trained up to sequence length %d" %
+            (FLAGS.max_seq_length, model_config.max_position_embeddings))
 
-  if not FLAGS.do_export:
-    tf.io.gfile.makedirs(FLAGS.output_dir)
+    if not FLAGS.do_export:
+        if not os.path.exists(FLAGS.output_dir):
+            os.makedirs(FLAGS.output_dir)
+        # tf.gfile.makedirs(FLAGS.output_dir)
 
-  num_tags = len(utils.read_label_map(FLAGS.label_map_file))
+    num_tags = len(utils.read_label_map(FLAGS.label_map_file))
+    tpu_cluster_resolver = None
+    if FLAGS.use_tpu and FLAGS.tpu_name:
+        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+            FLAGS.tpu_name, zone=FLAGS.tpu_zone, project=FLAGS.gcp_project)
 
-  tpu_cluster_resolver = None
-  if FLAGS.use_tpu and FLAGS.tpu_name:
-    tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
-        FLAGS.tpu_name, zone=FLAGS.tpu_zone, project=FLAGS.gcp_project)
+    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.contrib.tpu.RunConfig(
+        cluster=tpu_cluster_resolver,
+        master=FLAGS.master,
+        model_dir=FLAGS.output_dir,
+        save_checkpoints_steps=FLAGS.save_checkpoints_steps,
+        keep_checkpoint_max=FLAGS.keep_checkpoint_max)  # ,
+    # tpu_config=tf.contrib.tpu.TPUConfig(
+    #     iterations_per_loop=FLAGS.iterations_per_loop,
+    #     per_host_input_for_training=is_per_host,
+    #     eval_training_input_configuration=tf.contrib.tpu.InputPipelineConfig.SLICED))
 
-  is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
-  run_config = tf.contrib.tpu.RunConfig(
-      cluster=tpu_cluster_resolver,
-      master=FLAGS.master,
-      model_dir=FLAGS.output_dir,
-      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
-      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
-      tpu_config=tf.contrib.tpu.TPUConfig(
-          iterations_per_loop=FLAGS.iterations_per_loop,
-          per_host_input_for_training=is_per_host,
-          eval_training_input_configuration=tf.contrib.tpu.InputPipelineConfig.SLICED))
+    if FLAGS.do_train:
+        num_train_steps, num_warmup_steps = _calculate_steps(
+            FLAGS.num_train_examples, FLAGS.train_batch_size,
+            FLAGS.num_train_epochs, FLAGS.warmup_proportion)
+    else:
+        num_train_steps, num_warmup_steps = None, None
 
-  if FLAGS.do_train:
-    num_train_steps, num_warmup_steps = _calculate_steps(
-        FLAGS.num_train_examples, FLAGS.train_batch_size,
-        FLAGS.num_train_epochs, FLAGS.warmup_proportion)
-  else:
-    num_train_steps, num_warmup_steps = None, None
+    model_fn = run_lasertagger_utils.ModelFnBuilder(
+        config=model_config,
+        num_tags=num_tags,
+        init_checkpoint=FLAGS.init_checkpoint,
+        learning_rate=FLAGS.learning_rate,
+        num_train_steps=num_train_steps,
+        num_warmup_steps=num_warmup_steps,
+        use_tpu=FLAGS.use_tpu,
+        use_one_hot_embeddings=FLAGS.use_tpu,
+        max_seq_length=FLAGS.max_seq_length).build()
 
-  model_fn = run_lasertagger_utils.ModelFnBuilder(
-      config=model_config,
-      num_tags=num_tags,
-      init_checkpoint=FLAGS.init_checkpoint,
-      learning_rate=FLAGS.learning_rate,
-      num_train_steps=num_train_steps,
-      num_warmup_steps=num_warmup_steps,
-      use_tpu=FLAGS.use_tpu,
-      use_one_hot_embeddings=FLAGS.use_tpu,
-      max_seq_length=FLAGS.max_seq_length).build()
+    # If TPU is not available, this will fall back to normal Estimator on CPU or GPU.
+    estimator = tf.contrib.tpu.TPUEstimator(
+        use_tpu=FLAGS.use_tpu,
+        model_fn=model_fn,
+        config=run_config,
+        train_batch_size=FLAGS.train_batch_size,
+        eval_batch_size=FLAGS.eval_batch_size,
+        predict_batch_size=FLAGS.predict_batch_size
+    )
 
-  # If TPU is not available, this will fall back to normal Estimator on CPU
-  # or GPU.
-  estimator =tf.contrib.tpu.TPUEstimator(
-      use_tpu=FLAGS.use_tpu,
-      model_fn=model_fn,
-      config=run_config,
-      train_batch_size=FLAGS.train_batch_size,
-      eval_batch_size=FLAGS.eval_batch_size,
-      predict_batch_size=FLAGS.predict_batch_size
-  )
+    if FLAGS.do_train:
+        train_input_fn = file_based_input_fn_builder(
+            input_file=FLAGS.training_file,
+            max_seq_length=FLAGS.max_seq_length,
+            is_training=True,
+            drop_remainder=True)
+        estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
 
-  if FLAGS.do_train:
-    train_input_fn = file_based_input_fn_builder(
-        input_file=FLAGS.training_file,
-        max_seq_length=FLAGS.max_seq_length,
-        is_training=True,
-        drop_remainder=True)
-    estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
+    if FLAGS.do_export:
+        tf.logging.info("Exporting the model...")
 
-  if FLAGS.do_export:
-    tf.logging.info("Exporting the model...")
-    def serving_input_fn():
-      def _input_fn():
-        features = {
-            "input_ids": tf.placeholder(tf.int64, [None, None]),
-            "input_mask": tf.placeholder(tf.int64, [None, None]),
-            "segment_ids": tf.placeholder(tf.int64, [None, None]),
-        }
-        return tf.estimator.export.ServingInputReceiver(
-            features=features, receiver_tensors=features)
-      return _input_fn
+        def serving_input_fn():
+            def _input_fn():
+                features = {
+                    "input_ids": tf.placeholder(tf.int64, [None, None]),
+                    "input_mask": tf.placeholder(tf.int64, [None, None]),
+                    "segment_ids": tf.placeholder(tf.int64, [None, None]),
+                }
+                return tf.estimator.export.ServingInputReceiver(
+                    features=features, receiver_tensors=features)
 
-    estimator.export_saved_model(
-        FLAGS.export_path,
-        serving_input_fn(),
-        checkpoint_path=FLAGS.init_checkpoint)
+            return _input_fn
+
+        estimator.export_saved_model(
+            FLAGS.export_path,
+            serving_input_fn(),
+            checkpoint_path=FLAGS.init_checkpoint)
 
 
 if __name__ == "__main__":
-  flags.mark_flag_as_required("model_config_file")
-  flags.mark_flag_as_required("label_map_file")
-  tf.app.run()
+    flags.mark_flag_as_required("model_config_file")
+    flags.mark_flag_as_required("label_map_file")
+    tf.app.run()

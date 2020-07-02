@@ -7,16 +7,13 @@ from __future__ import print_function
 import json
 from absl import app
 from absl import flags
-from absl import logging
 import os, sys, time
 from termcolor import colored
-import math
 import tensorflow as tf
 
 block_list = os.path.realpath(__file__).split("/")
 path = "/".join(block_list[:-2])
 sys.path.append(path)
-from compute_lcs import _compute_lcs
 import bert_example
 import predict_utils
 import tagging_converter
@@ -57,7 +54,6 @@ def predict_and_write(predictor, sources_batch, previous_line_list,context_list,
         output = ""
         if len(prediction) > 1 and prediction != sources:  #  TODO  ignore keep totelly and short prediction
             output= "%s%s" % (context_list[id], prediction)  # 需要和ｃｏｎｔｅｘｔ拼接么
-            # print(curLine(), "prediction:", prediction, "sources:", sources, ",output:", output, prediction != sources)
         writer.write("%s\t%s\n" % (previous_line_list[id], output))
     batch_num = batch_num + 1
     num_predicted += len(prediction_batch)
@@ -90,8 +86,6 @@ def main(argv):
         label_map)
     print(colored("%s input file:%s" % (curLine(), FLAGS.input_file), "red"))
     sourcesA_list = []
-    # sourcesB_list = []
-    # target_list = []
     with open(FLAGS.input_file) as f:
         for line in f:
             json_map = json.loads(line.rstrip('\n'))
@@ -112,15 +106,11 @@ def main(argv):
                         location.append("0")
                 location_batch.append("".join(location))
             prediction_batch = predictor.predict_batch(sources_batch=sources_batch, location_batch=location_batch)
-            # current_batch_size = int(len(sources_batch)/2)
-            # assert len(prediction_batch) == current_batch_size*2
             expand_list = []
             for prediction in prediction_batch: # TODO
                 if prediction in sources_batch:
-                    # print(curLine(), prediction, ",重复", sources_batch.index(prediction))
                     continue
                 expand_list.append(prediction)
-                # print(curLine(), type(prediction), "prediction:", prediction, len(expand_list))
 
             json_map = {"questions":sources_batch, "expands":expand_list}
             json_str = json.dumps(json_map, ensure_ascii=False)
@@ -129,8 +119,6 @@ def main(argv):
             num_predicted += len(expand_list)
             if batch_id % 20 == 0:
                 cost_time = (time.time() - start_time) / 60.0
-                # print(curLine(), id, prediction_A, prediction_B, "target:", target, "current_batch_size=", current_batch_size)
-                # print(curLine(), id,"sourceA:", sourceA, "sourceB:",sourceB, "target:", target)
                 print("%s batch_id=%d/%d, predict %d/%d examples, cost %.2fmin." %
                       (curLine(), batch_id + 1, len(sourcesA_list), num_predicted, num_predicted, cost_time))
     cost_time = (time.time() - start_time) / 60.0

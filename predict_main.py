@@ -31,7 +31,7 @@ import bert_example
 import predict_utils
 import tagging_converter
 import utils
-
+from utils import my_tokenizer_class
 from curLine_file import curLine
 
 FLAGS = flags.FLAGS
@@ -54,7 +54,7 @@ flags.DEFINE_string(
 flags.DEFINE_string('vocab_file', None, 'Path to the BERT vocabulary file.')
 flags.DEFINE_integer('max_seq_length', 128, 'Maximum sequence length.')
 flags.DEFINE_bool(
-    'do_lower_case', False,
+    'do_lower_case', True,
     'Whether to lower case the input text. Should be True for uncased '
     'models and False for cased models.')
 flags.DEFINE_bool('enable_swap_tag', True, 'Whether to enable the SWAP tag.')
@@ -72,9 +72,10 @@ def main(argv):
     flags.mark_flag_as_required('saved_model')
 
     label_map = utils.read_label_map(FLAGS.label_map_file)
+    tokenizer = my_tokenizer_class(FLAGS.vocab_file, do_lower_case=FLAGS.do_lower_case)
     converter = tagging_converter.TaggingConverter(
         tagging_converter.get_phrase_vocabulary_from_label_map(label_map),
-        FLAGS.enable_swap_tag)
+        FLAGS.enable_swap_tag, tokenizer)
     builder = bert_example.BertExampleBuilder(label_map, FLAGS.vocab_file,
                                               FLAGS.max_seq_length,
                                               FLAGS.do_lower_case, converter)
@@ -90,7 +91,7 @@ def main(argv):
             sources_list.append([sources])
             target_list.append(target)
     number = len(sources_list)  # 总样本数
-    predict_batch_size = min(64, number)
+    predict_batch_size = min(96, number)
     batch_num = math.ceil(float(number) / predict_batch_size)
 
     start_time = time.time()

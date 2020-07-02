@@ -50,7 +50,7 @@ flags.DEFINE_string(
 flags.DEFINE_string('vocab_file', None, 'Path to the BERT vocabulary file.')
 flags.DEFINE_integer('max_seq_length', 40, 'Maximum sequence length.')
 flags.DEFINE_bool(
-    'do_lower_case', False,
+    'do_lower_case', True,
     'Whether to lower case the input text. Should be True for uncased '
     'models and False for cased models.')
 flags.DEFINE_bool('enable_swap_tag', True, 'Whether to enable the SWAP tag.')
